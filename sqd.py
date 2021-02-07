@@ -72,15 +72,17 @@ class DBuilder:
             logger.debug(f'Template for "{db}" opened')
 
         elif mode == 'work' or mode == 'data':
-            logger.debug(f'Getting last tab for "{db}"')
-            try:
-                tabs = len(sheets.worksheets()) - 1
-                sleep(waiting_time)
-            except:
-                logger.error(f'Request limit exceeded. Waiting for {wait_exceed} seconds...')
-                sleep(wait_exceed)
-                tabs = len(sheets.worksheets()) - 1
-                sleep(waiting_time)
+            if tab == None:
+                logger.debug(f'Getting last tab for "{db}"')
+                try:
+                    tabs = len(sheets.worksheets()) - 1
+                    sleep(waiting_time)
+                except:
+                    logger.error(f'Request limit exceeded. Waiting for {wait_exceed} seconds...')
+                    sleep(wait_exceed)
+                    tabs = len(sheets.worksheets()) - 1
+                    sleep(waiting_time)
+                    
             try:
                 sheet = sheets.get_worksheet(tabs)
                 sleep(waiting_time)
