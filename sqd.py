@@ -18,15 +18,10 @@ logger = logging.getLogger(__name__)
 
 scope = ["https://spreadsheets.google.com/feeds",'https://www.googleapis.com/auth/spreadsheets',"https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
 
-
-urls = {'data': 'https://docs.google.com/spreadsheets/d/1l_xfi6xaoy-arSGdMwHvDaO0GAC4iXqFlBdiP7Zp8KM/edit?usp=sharing'}
-
-creds = ServiceAccountCredentials.from_json_keyfile_name('creds/cred.json', scope)
-
-client = gspread.authorize(creds)
-
 class DBuilder:
-    def __init__(self, urls, dbname=':memory:'):
+    def __init__(self, urls, creds, dbname=':memory:'):
+        self.creds = ServiceAccountCredentials.from_json_keyfile_name(creds, scope)
+        self.client = gspread.authorize(self.creds)
         self.dbname = dbname
         self.conn = sqlite3.connect(dbname, check_same_thread=False)
         self.c = self.conn.cursor()
@@ -195,7 +190,9 @@ class DBuilder:
         with self.conn:
             self.c.execute("UPDATE '%s' SET '%s' = ? WHERE '%s' = ?" %(db, col, t_col), (value, target))
 
-    def init(self, urls=urls, num=False):
+    def init(self, urls=None, num=False):
+        if urls == None:
+            urls = self.urls
         for url in urls:
             if num == url:
                 dh.create_table(url, True)
@@ -203,7 +200,9 @@ class DBuilder:
                 dh.create_table(url)
             dh.update_table(url)
 
-    def reset(self, urls=urls, num=False):
+    def reset(self, urls=None, num=False):
+        if urls == None:
+            urls = self.urls
         for url in urls:
             try:
                 self.delete_table(url)
