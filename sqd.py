@@ -26,7 +26,7 @@ class DBuilder:
         self.c = self.conn.cursor()
         self.urls = urls
 
-    def get_sheets(self, db, mode=False, sheet=None, tab=None):
+    def get_sheets(self, db, mode=False, sheet=None, data=True, tab=None):
         if mode == 'add':
             logger.debug(f'Adding tab to "{db}"')
             try:
@@ -67,8 +67,20 @@ class DBuilder:
                 sleep(wait_exceed)
                 sheet = sheets.sheet1
                 sleep(waiting_time)
-            
             logger.debug(f'Template for "{db}" opened')
+
+            if data == True:
+                try:
+                    sheet = sheet.get_all_values()
+                    sleep(waiting_time)
+                except:
+                    logger.error(f'Request limit exceeded. Waiting for {wait_exceed} seconds...')
+                    sleep(wait_exceed)
+                    sheet = sheet.get_all_values()
+                    sleep(waiting_time)
+                logger.debug(f'Data from template for "{db}" retrieved')
+                
+            
 
         elif mode == 'work' or mode == 'data':
             logger.debug(f'Getting last tab for "{db}"')
@@ -94,18 +106,16 @@ class DBuilder:
             if mode == 'data':
                 logger.debug(f'Getting all values from "{db}"')
                 try:
-                    data = sheet.get_all_values()
+                    sheet = sheet.get_all_values()
                     sleep(waiting_time)
                 except:
                     logger.error(f'Request limit exceeded. Waiting for {wait_exceed} seconds...')
                     sleep(wait_exceed)
-                    data = sheet.get_all_values()
+                    sheet = sheet.get_all_values()
                     sleep(waiting_time)
 
                 logger.debug(f'Values retrieved "{db}"')
-                
-                return data
-        
+                        
         return sheet
 
     def create_table(self, db, num=False):
