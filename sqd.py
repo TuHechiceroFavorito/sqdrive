@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 scope = ["https://spreadsheets.google.com/feeds",'https://www.googleapis.com/auth/spreadsheets',"https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
 
 
-urls = {'data': 'https://docs.google.com/spreadsheets/d/1l_xfi6xaoy-arSGdMwHvDaO0GAC4iXqFlBdiP7Zp8KM/edit?usp=sharing'}
+urls = {'data': 'your_drive_sheet_url'}
 
 creds = ServiceAccountCredentials.from_json_keyfile_name('creds/cred.json', scope)
 
@@ -288,5 +288,5 @@ class DBuilder:
 
 
 if __name__ == '__main__':
-    dh = DBuilder('clientes.db')
+    dh = DBuilder('example.db')
     dh.init(urls)
