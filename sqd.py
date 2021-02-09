@@ -6,7 +6,6 @@ import logging
 import numpy as np
 from time import asctime, localtime, sleep
 
-from creds.tokens import drive as drive_url
 waiting_time = 2
 wait_exceed = 20
 
