@@ -1,3 +1,5 @@
 venv
 .vscode
 creds
+__pycache__
+*pyc

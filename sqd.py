@@ -21,7 +21,7 @@ scope = ["https://spreadsheets.google.com/feeds",'https://www.googleapis.com/aut
 class DBuilder:
     def __init__(self, urls, creds, dbname=':memory:'):
         creds_set = ServiceAccountCredentials.from_json_keyfile_name(creds, scope)
-        gspread.authorize(creds_set)
+        self.client = gspread.authorize(creds_set)
         self.dbname = dbname
         self.conn = sqlite3.connect(dbname, check_same_thread=False)
         self.c = self.conn.cursor()
@@ -44,12 +44,12 @@ class DBuilder:
         else:
             logger.debug(f'Opening "{db}"')
             try:
-                sheets = client.open_by_url(self.urls[db])
+                sheets = self.client.open_by_url(self.urls[db])
                 sleep(waiting_time)
             except:
                 logger.error(f'Request limit exceeded. Waiting for {wait_exceed} seconds...')
                 sleep(wait_exceed)
-                sheets = client.open_by_url(self.urls[db])
+                sheets = self.client.open_by_url(self.urls[db])
                 sleep(waiting_time)
 
             logger.debug(f'"{db}" opened')
