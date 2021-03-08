@@ -247,6 +247,47 @@ class DBuilder:
 
         print(values)
 
+    def row_checker(self, local_data, remote_data, ucols, db):
+        for col in range(len(remote_data)):
+            if remote_data[col][0] not in ucols:
+                remote_data[col] = 'bot*defined'
+                local_data[col] = 'bot*defined'
+
+        while 'bot*defined' in remote_data:
+            remote_data.remove('bot*defined')
+
+        while 'bot*defined' in local_data:
+            local_data.remove('bot*defined')
+
+        removed = self.transpose(local_data)
+        added = self.transpose(remote_data)[1:]
+        indeces = []
+        for row in range(len(added)):
+            if added[row] in removed:
+                removed.remove(added[row])
+                added[row] = 'ai'
+            else:
+                indeces.append(row)
+
+        while 'ai' in added:
+            added.remove('ai')
+
+        remote_data_updated = self.transpose(remote_data)[1:]
+        local_data_updated = self.transpose(local_data)
+        #ADD
+        with self.conn:
+            self.c.execute('SELECT * FROM %s' %(db))
+            for index in range(len(indeces)):
+                local_data_updated.insert(indeces[index], added[index])
+        
+        for row in removed:
+            local_data_updated.remove(row)
+
+        logger.debug('updated remote data')
+        logger.debug('updated local data')
+
+        return self.transpose(local_data_updated)
+
     def upload_table(self, dbs):
         if type(dbs) == str:
             dbs = [dbs]
@@ -256,23 +297,25 @@ class DBuilder:
                 db = db[0]
             else:
                 cols = []
-
             sheet = self.get_sheets(db, mode='work')
-            old_data = self.get_sheets(db, mode='data')[1:]
+            remote_data = self.get_sheets(db, mode='data')
 
             with self.conn:
                 self.c.execute('SELECT * FROM %s' %(db))
                 titles = list(map(lambda x:x[0], self.c.description[1:]))
-                data = list(map(lambda x:list(x[1:]), self.c.fetchall()))
+                local_data = list(map(lambda x:list(x[1:]), self.c.fetchall()))
 
-            data = self.transpose(data)
-            old_data = self.transpose(old_data)
-
+            local_data = self.transpose(local_data)
+            remote_data = self.transpose(remote_data)
             new_data = []
-            for element in data:
-                col = titles[data.index(element)]
+            local_data_u= self.row_checker(local_data=local_data, remote_data=remote_data, ucols=cols, db=db)
+
+            
+
+            for element in local_data_u:
+                col = titles[local_data_u.index(element)]
                 if col in cols:
-                    element = old_data[data.index(element)]
+                    element = remote_data[local_data_u.index(element)]
 
                 new_data.append(element)
 
@@ -283,6 +326,9 @@ class DBuilder:
             new_data = self.transpose(new_data)
 
             new_data.insert(0, titles)
+
+            # new_data = self.transpose(new_data)
+
 
             try:
                 sheet.update(new_data)
