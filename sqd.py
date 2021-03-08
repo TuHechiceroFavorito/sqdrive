@@ -219,17 +219,18 @@ class DBuilder:
                 logger.warning(f"Table {url} didn't exist")
         self.init(urls, num)
 
-    def transpose(self, name):
-        numpy_array = np.array(name)
-        transpose = numpy_array.T
-        name = transpose.tolist()
-        for row in range(len(name)):
-            for col in range(len(name[row])):
-                if name[row][col] == 'FALSE' or name[row][col] =='False':
-                    name[row][col] = False
-                elif name[row][col] == 'TRUE' or name[row][col] =='True':
-                    name[row][col] = True
-        return name
+    def transpose(self, a):
+        mapping = map(list, zip(*a))
+        transpose = []
+        for i in mapping:
+            transpose.append(i)
+        for row in range(len(transpose)):
+            for col in range(len(transpose[row])):
+                if transpose[row][col] == 'FALSE' or transpose[row][col] =='False':
+                    transpose[row][col] = False
+                elif transpose[row][col] == 'TRUE' or transpose[row][col] =='True':
+                    transpose[row][col] = True
+        return transpose
 
     def box(self, db, data):
         sheet = self.get_sheets(db)
@@ -248,45 +249,54 @@ class DBuilder:
         print(values)
 
     def row_checker(self, local_data, remote_data, ucols, db):
-        for col in range(len(remote_data)):
-            if remote_data[col][0] not in ucols:
-                remote_data[col] = 'bot*defined'
-                local_data[col] = 'bot*defined'
+        cld = local_data.copy()
+        crd = remote_data.copy()
+        titles = self.transpose(remote_data)[0]
 
-        while 'bot*defined' in remote_data:
-            remote_data.remove('bot*defined')
+        for col in range(len(crd)):
+            if crd[col][0] not in ucols:
+                crd[col] = 'bot*defined'
+                cld[col] = 'bot*defined'
 
-        while 'bot*defined' in local_data:
-            local_data.remove('bot*defined')
+        while 'bot*defined' in crd:
+            crd.remove('bot*defined')
 
-        removed = self.transpose(local_data)
-        added = self.transpose(remote_data)[1:]
+        while 'bot*defined' in cld:
+            cld.remove('bot*defined')
+
+        removed = self.transpose(cld)
+        # added = self.transpose(crd)[1:]
+        added = self.transpose(crd)
+
         indeces = []
-        for row in range(len(added)):
-            if added[row] in removed:
-                removed.remove(added[row])
-                added[row] = 'ai'
+        for row in range(len(added)-1):
+            if added[row+1] in removed:
+                removed.remove(added[row+1])
+                added[row+1] = 'ai'
             else:
-                indeces.append(row)
+                indeces.append(row+1)
 
         while 'ai' in added:
             added.remove('ai')
 
-        remote_data_updated = self.transpose(remote_data)[1:]
-        local_data_updated = self.transpose(local_data)
+        crdi = self.transpose(crd.copy())
+        cldi = self.transpose(cld.copy())
+        ldu = self.transpose(local_data.copy())
         #ADD
-        with self.conn:
-            self.c.execute('SELECT * FROM %s' %(db))
-            for index in range(len(indeces)):
-                local_data_updated.insert(indeces[index], added[index])
+        # with self.conn:
+        #     self.c.execute('SELECT * FROM %s' %(db))
+        for index in range(len(indeces)):
+            #Complete the matrix. Ad empty bot defined columns (['']) TODO
+            
+            ldu.insert(indeces[index], added[index])
         
         for row in removed:
-            local_data_updated.remove(row)
+            del ldu[cldi.index(row)]
 
         logger.debug('updated remote data')
         logger.debug('updated local data')
 
-        return self.transpose(local_data_updated)
+        return self.transpose(ldu)
 
     def upload_table(self, dbs):
         if type(dbs) == str:
@@ -309,9 +319,7 @@ class DBuilder:
             remote_data = self.transpose(remote_data)
             new_data = []
             local_data_u= self.row_checker(local_data=local_data, remote_data=remote_data, ucols=cols, db=db)
-
             
-
             for element in local_data_u:
                 col = titles[local_data_u.index(element)]
                 if col in cols:
@@ -325,7 +333,7 @@ class DBuilder:
 
             new_data = self.transpose(new_data)
 
-            new_data.insert(0, titles)
+            # new_data.insert(0, titles)
 
             # new_data = self.transpose(new_data)
 
