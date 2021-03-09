@@ -265,16 +265,15 @@ class DBuilder:
             cld.remove('bot*defined')
 
         removed = self.transpose(cld)
-        # added = self.transpose(crd)[1:]
         added = self.transpose(crd)
 
         indeces = []
-        for row in range(len(added)-1):
-            if added[row+1] in removed:
-                removed.remove(added[row+1])
-                added[row+1] = 'ai'
+        for row in range(1, len(added)-1):
+            if added[row] in removed:
+                removed.remove(added[row])
+                added[row] = 'ai'
             else:
-                indeces.append(row+1)
+                indeces.append(row)
 
         while 'ai' in added:
             added.remove('ai')
@@ -282,16 +281,23 @@ class DBuilder:
         crdi = self.transpose(crd.copy())
         cldi = self.transpose(cld.copy())
         ldu = self.transpose(local_data.copy())
-        #ADD
-        # with self.conn:
-        #     self.c.execute('SELECT * FROM %s' %(db))
-        for index in range(len(indeces)):
-            #Complete the matrix. Ad empty bot defined columns (['']) TODO
-            
-            ldu.insert(indeces[index], added[index])
-        
+
         for row in removed:
-            del ldu[cldi.index(row)]
+            ldu[cldi.index(row)] = 'remove*now'
+        while 'remove*now' in ldu:
+            ldu.remove('remove*now')
+        for index in range(len(indeces)):
+            counter = 0
+            for title in range(len(titles)):
+                try:
+                    if titles[title] != added[0][title-counter]:
+                        added[index+1].insert(title, '')
+                        counter += 1
+                except:
+                    added[index+1].append('')
+                    added[0].append(titles[title])
+            ldu.insert(indeces[index]-1, added[index+1])
+
 
         logger.debug('updated remote data')
         logger.debug('updated local data')
@@ -319,24 +325,10 @@ class DBuilder:
             remote_data = self.transpose(remote_data)
             new_data = []
             local_data_u= self.row_checker(local_data=local_data, remote_data=remote_data, ucols=cols, db=db)
-            
-            for element in local_data_u:
-                col = titles[local_data_u.index(element)]
-                if col in cols:
-                    element = remote_data[local_data_u.index(element)]
 
-                new_data.append(element)
+            new_data = self.transpose(local_data_u)
 
-            for title in titles:
-                if title[:5] == 'empty':
-                    titles[titles.index(title)] = ''
-
-            new_data = self.transpose(new_data)
-
-            # new_data.insert(0, titles)
-
-            # new_data = self.transpose(new_data)
-
+            new_data.insert(0, titles)
 
             try:
                 sheet.update(new_data)
