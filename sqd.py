@@ -256,7 +256,11 @@ class DBuilder:
         for col in range(len(crd)):
             if crd[col][0] not in ucols:
                 crd[col] = 'bot*defined'
-                cld[col] = 'bot*defined'
+                try:
+                    cld[col] = 'bot*defined'
+                except:
+                    cld.append('bot*defined')
+
 
         while 'bot*defined' in crd:
             crd.remove('bot*defined')
