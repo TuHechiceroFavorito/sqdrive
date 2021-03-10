@@ -259,9 +259,9 @@ class DBuilder:
 
         for col in range(len(crd)):
             if crd[col][0] not in ucols:
-                crd[col] = 'bot*defined'
                 bindex.append(col)
                 bcols.append(crd[col])
+                crd[col] = 'bot*defined'
                 try:
                     cld[col] = 'bot*defined'
                 except:
