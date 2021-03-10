@@ -252,9 +252,15 @@ class DBuilder:
         cld = local_data.copy()
         crd = remote_data.copy()
         titles = self.transpose(remote_data)[0]
+        #in columns
+        bcols = []
+        bindex = []
+
 
         for col in range(len(crd)):
             if crd[col][0] not in ucols:
+                bindex.append(col)
+                bcols.append(crd[col])
                 crd[col] = 'bot*defined'
                 try:
                     cld[col] = 'bot*defined'
@@ -281,6 +287,14 @@ class DBuilder:
 
         while 'ai' in added:
             added.remove('ai')
+
+        added = self.transpose(added)
+
+        for col in range(len(bcols)):
+            added.insert(bindex[col], bcols[col])
+
+        added = self.transpose(added)
+        
 
         crdi = self.transpose(crd.copy())
         cldi = self.transpose(cld.copy())
