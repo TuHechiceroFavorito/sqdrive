@@ -261,12 +261,11 @@ class DBuilder:
             if crd[col][0] not in ucols:
                 crd[col] = 'bot*defined'
                 bindex.append(col)
+                bcols.append(crd[col])
                 try:
                     cld[col] = 'bot*defined'
-                    bcols.append(cld[col])
                 except:
                     cld.append('bot*defined')
-                    bcols.append(cld[col])
 
 
         while 'bot*defined' in crd:
