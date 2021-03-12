@@ -9,11 +9,8 @@ from time import asctime, localtime, sleep
 waiting_time = 2
 wait_exceed = 20
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
-)
-
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 scope = ["https://spreadsheets.google.com/feeds",'https://www.googleapis.com/auth/spreadsheets',"https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
 
