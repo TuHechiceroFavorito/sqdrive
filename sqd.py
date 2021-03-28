@@ -245,89 +245,15 @@ class DBuilder:
 
         print(values)
 
-    def row_checker(self, local_data, remote_data, ucols, db):
-        cld = local_data.copy()
-        crd = remote_data.copy()
-        titles = self.transpose(remote_data)[0]
-        #in columns
-        bcols = []
-        bindex = []
-
-
-        for col in range(len(crd)):
-            if crd[col][0] not in ucols:
-                bindex.append(col)
-                bcols.append(crd[col])
-                crd[col] = 'bot*defined'
-                try:
-                    cld[col] = 'bot*defined'
-                except:
-                    cld.append('bot*defined')
-
-
-        while 'bot*defined' in crd:
-            crd.remove('bot*defined')
-
-        while 'bot*defined' in cld:
-            cld.remove('bot*defined')
-
-        removed = self.transpose(cld)
-        added = self.transpose(crd)
-
-        indeces = []
-        for row in range(1, len(added)-1):
-            if added[row] in removed:
-                removed.remove(added[row])
-                added[row] = 'ai'
-            else:
-                indeces.append(row)
-
-        while 'ai' in added:
-            added.remove('ai')
-
-        added = self.transpose(added)
-
-        for col in range(len(bcols)):
-            added.insert(bindex[col], bcols[col])
-
-        added = self.transpose(added)
-        
-
-        crdi = self.transpose(crd.copy())
-        cldi = self.transpose(cld.copy())
-        ldu = self.transpose(local_data.copy())
-
-        for row in removed:
-            ldu[cldi.index(row)] = 'remove*now'
-        while 'remove*now' in ldu:
-            ldu.remove('remove*now')
-        for index in range(len(indeces)):
-            counter = 0
-            for title in range(len(titles)):
-                try:
-                    if titles[title] != added[0][title-counter]:
-                        added[index+1].insert(title, '')
-                        counter += 1
-                except:
-                    added[index+1].append('')
-                    added[0].append(titles[title])
-            ldu.insert(indeces[index]-1, added[index+1])
-
-
-        logger.debug('updated remote data')
-        logger.debug('updated local data')
-
-        return self.transpose(ldu)
-
     def upload_table(self, dbs):
         if type(dbs) == str:
             dbs = [dbs]
         for db in dbs:
             if type(db) == list:
-                cols = db[1:]
+                prior = db[1:]
                 db = db[0]
             else:
-                cols = []
+                prior = []
             sheet = self.get_sheets(db, mode='work')
             remote_data = self.get_sheets(db, mode='data')
 
@@ -336,14 +262,42 @@ class DBuilder:
                 titles = list(map(lambda x:x[0], self.c.description[1:]))
                 local_data = list(map(lambda x:list(x[1:]), self.c.fetchall()))
 
-            local_data = self.transpose(local_data)
-            remote_data = self.transpose(remote_data)
+            local_data = [titles] + local_data 
             new_data = []
-            local_data_u= self.row_checker(local_data=local_data, remote_data=remote_data, ucols=cols, db=db)
 
-            new_data = self.transpose(local_data_u)
+            #Priority by default to the bot. If in prior list, it swithces to remote data
+            if len(remote_data) > len(local_data):
+                flag = 'add'
+                for _ in range(len(remote_data) - len(local_data)):
+                    local_data.append(local_data[-1])
 
-            new_data.insert(0, titles)
+            elif len(remote_data) < len(local_data):
+                flag = 'remove'
+                for _ in range(abs(len(remote_data) - len(local_data))):
+                    remote_data.append(remote_data[-1])
+            
+            for row in range(len(local_data)):
+                new_data.append([])
+                if local_data[row] == remote_data[row]:
+                    new_data[row] = local_data[row]
+
+                else:
+                    for col in range(len(local_data[row])):
+                        if col not in prior:    #BOT DEFINED
+                            if remote_data[row][col] != local_data[row][col] and flag == 'add':   #IT'S DIFFERENT FROM THE LOCAL (NEW ROW)
+                                new_data[row] = remote_data[row]
+                                break
+                            elif remote_data[row][col] != local_data[row][col] and flag == 'remove':
+                                new_data[row] = 'remove'
+                                break
+                            else:
+                                new_data[row].append(local_data[row][col])
+
+                        else:   #REMOTE DEFINED
+                            new_data[row].append(local_data[row][col])
+            
+            while 'remove' in new_data:
+                new_data.remove('remove')
 
             try:
                 sheet.update(new_data)
