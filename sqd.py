@@ -265,6 +265,10 @@ class DBuilder:
             local_data = [titles] + local_data 
             new_data = []
 
+            if prior != []:
+                for p in range(len(prior)):
+                    prior[p] = titles.index(prior[p])
+
             #Priority by default to the bot. If in prior list, it swithces to remote data
             
             #SETTING SAME LENGTH OF ROWS
@@ -313,7 +317,7 @@ class DBuilder:
                                 new_data[row].append(local_data[row][col])
 
                         else:   #REMOTE DEFINED
-                            new_data[row].append(local_data[row][col])
+                            new_data[row].append(remote_data[row][col])
             
             while 'remove' in new_data:
                 new_data.remove('remove')
