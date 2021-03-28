@@ -278,6 +278,9 @@ class DBuilder:
                 for _ in range(len(local_data) - len(remote_data)):
                     remote_data.append(remote_data[-1])
 
+            else:
+                flag = None
+
             #SETTING SAME LENGTH OF COLS. IT'S ONLY A PROBLEM IF
             #THE REMOTE HAS LESS ROWS THAN THE LOCAL
             if len(remote_data[0]) < len(local_data[0]):
