@@ -266,6 +266,8 @@ class DBuilder:
             new_data = []
 
             #Priority by default to the bot. If in prior list, it swithces to remote data
+            
+            #SETTING SAME LENGTH OF ROWS
             if len(remote_data) > len(local_data):
                 flag = 'add'
                 for _ in range(len(remote_data) - len(local_data)):
@@ -273,8 +275,22 @@ class DBuilder:
 
             elif len(remote_data) < len(local_data):
                 flag = 'remove'
-                for _ in range(abs(len(remote_data) - len(local_data))):
+                for _ in range(len(local_data) - len(remote_data)):
                     remote_data.append(remote_data[-1])
+
+            #SETTING SAME LENGTH OF COLS. IT'S ONLY A PROBLEM IF
+            #THE REMOTE HAS LESS ROWS THAN THE LOCAL
+            if len(remote_data[0]) < len(local_data[0]):
+                diff = len(local_data[0]) - len(remote_data[0])
+                
+                remote_data = self.transpose(remote_data)
+                local_data = self.transpose(local_data)
+
+                for x in range(diff):
+                    remote_data.append(local_data[-1-x])
+
+                remote_data = self.transpose(remote_data)
+                local_data = self.transpose(local_data)
             
             for row in range(len(local_data)):
                 new_data.append([])
