@@ -293,8 +293,10 @@ class DBuilder:
                 remote_data = self.transpose(remote_data)
                 local_data = self.transpose(local_data)
 
+                init_len = len(remote_data)
+
                 for x in range(diff):
-                    remote_data.append(local_data[-1-x])
+                    remote_data.append(local_data[init_len+x])
 
                 remote_data = self.transpose(remote_data)
                 local_data = self.transpose(local_data)
