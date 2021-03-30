@@ -325,10 +325,10 @@ class DBuilder:
                 new_data.remove('remove')
 
             try:
-                sheet.update(new_data)
+                sheet.update(new_data, raw=False)
                 sleep(waiting_time)
             except:
                 logger.error(f'Request limit exceeded. Waiting for {wait_exceed} seconds...')
                 sleep(wait_exceed)
-                sheet.update(new_data)
+                sheet.update(new_data, raw=False)
                 sleep(waiting_time)
