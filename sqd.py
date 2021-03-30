@@ -23,7 +23,12 @@ class DBuilder:
         self.c = self.conn.cursor()
         self.urls = urls
 
-    def get_sheets(self, db, mode=False, sheet=None, data=True, tab=None):
+    def get_sheets(self, db, mode=False, sheet=None, data=True, tab=None, formulas=False):
+        if formulas:
+            render = 'FORMULA'
+        else:
+            render = 'FORMATTED_VALUE'
+
         if mode == 'add':
             logger.debug(f'Adding tab to "{db}"')
             try:
@@ -68,12 +73,12 @@ class DBuilder:
 
             if data == True:
                 try:
-                    sheet = sheet.get_all_values(value_render_option='FORMULA')
+                    sheet = sheet.get_all_values(value_render_option=render)
                     sleep(waiting_time)
                 except:
                     logger.error(f'Request limit exceeded. Waiting for {wait_exceed} seconds...')
                     sleep(wait_exceed)
-                    sheet = sheet.get_all_values(value_render_option='FORMULA')
+                    sheet = sheet.get_all_values(value_render_option=render)
                     sleep(waiting_time)
                 logger.debug(f'Data from template for "{db}" retrieved')
                 
@@ -103,12 +108,12 @@ class DBuilder:
             if mode == 'data':
                 logger.debug(f'Getting all values from "{db}"')
                 try:
-                    sheet = sheet.get_all_values(value_render_option='FORMULA')
+                    sheet = sheet.get_all_values(value_render_option=render)
                     sleep(waiting_time)
                 except:
                     logger.error(f'Request limit exceeded. Waiting for {wait_exceed} seconds...')
                     sleep(wait_exceed)
-                    sheet = sheet.get_all_values(value_render_option='FORMULA')
+                    sheet = sheet.get_all_values(value_render_option=render)
                     sleep(waiting_time)
 
                 logger.debug(f'Values retrieved "{db}"')
@@ -141,12 +146,12 @@ class DBuilder:
         except sqlite3.OperationalError:
             logger.warn(f'Table "{db}" already exists')
 
-    def update_table(self, dbs):
+    def update_table(self, dbs, formulas=False):
         if type(dbs) == str:
             dbs = [dbs]
         for db in dbs:
             self.delete_data(db)
-            data = self.get_sheets(db, mode='data')[1:]
+            data = self.get_sheets(db, mode='data', formulas=formulas)[1:]
 
             with self.conn:
                 self.c.execute('SELECT * FROM %s' %(db))
@@ -245,7 +250,7 @@ class DBuilder:
 
         print(values)
 
-    def upload_table(self, dbs):
+    def upload_table(self, dbs, formulas=False):
         if type(dbs) == str:
             dbs = [dbs]
         for db in dbs:
@@ -254,8 +259,8 @@ class DBuilder:
                 db = db[0]
             else:
                 prior = []
-            sheet = self.get_sheets(db, mode='work')
-            remote_data = self.get_sheets(db, mode='data')
+            sheet = self.get_sheets(db, mode='work', formulas=formulas)
+            remote_data = self.get_sheets(db, mode='data', formulas=formulas)
 
             with self.conn:
                 self.c.execute('SELECT * FROM %s' %(db))
