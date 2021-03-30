@@ -68,12 +68,12 @@ class DBuilder:
 
             if data == True:
                 try:
-                    sheet = sheet.get_all_values()
+                    sheet = sheet.get_all_values(value_render_option='FORMULA')
                     sleep(waiting_time)
                 except:
                     logger.error(f'Request limit exceeded. Waiting for {wait_exceed} seconds...')
                     sleep(wait_exceed)
-                    sheet = sheet.get_all_values()
+                    sheet = sheet.get_all_values(value_render_option='FORMULA')
                     sleep(waiting_time)
                 logger.debug(f'Data from template for "{db}" retrieved')
                 
@@ -103,12 +103,12 @@ class DBuilder:
             if mode == 'data':
                 logger.debug(f'Getting all values from "{db}"')
                 try:
-                    sheet = sheet.get_all_values()
+                    sheet = sheet.get_all_values(value_render_option='FORMULA')
                     sleep(waiting_time)
                 except:
                     logger.error(f'Request limit exceeded. Waiting for {wait_exceed} seconds...')
                     sleep(wait_exceed)
-                    sheet = sheet.get_all_values()
+                    sheet = sheet.get_all_values(value_render_option='FORMULA')
                     sleep(waiting_time)
 
                 logger.debug(f'Values retrieved "{db}"')
