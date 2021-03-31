@@ -278,17 +278,12 @@ class DBuilder:
             
             #SETTING SAME LENGTH OF ROWS
             if len(remote_data) > len(local_data):
-                flag = 'add'
                 for _ in range(len(remote_data) - len(local_data)):
-                    local_data.append(local_data[-1])
+                    local_data.append(remote_data[-1])
 
             elif len(remote_data) < len(local_data):
-                flag = 'remove'
                 for _ in range(len(local_data) - len(remote_data)):
-                    remote_data.append(remote_data[-1])
-
-            else:
-                flag = None
+                    remote_data.append(local_data[-1])
 
             #SETTING SAME LENGTH OF COLS. IT'S ONLY A PROBLEM IF
             #THE REMOTE HAS LESS ROWS THAN THE LOCAL
@@ -314,14 +309,7 @@ class DBuilder:
                 else:
                     for col in range(len(local_data[row])):
                         if col not in prior:    #BOT DEFINED
-                            if remote_data[row][col] != local_data[row][col] and flag == 'add':   #IT'S DIFFERENT FROM THE LOCAL (NEW ROW)
-                                new_data[row] = remote_data[row]
-                                break
-                            elif remote_data[row][col] != local_data[row][col] and flag == 'remove':
-                                new_data[row] = 'remove'
-                                break
-                            else:
-                                new_data[row].append(local_data[row][col])
+                            new_data[row].append(local_data[row][col])
 
                         else:   #REMOTE DEFINED
                             new_data[row].append(remote_data[row][col])
