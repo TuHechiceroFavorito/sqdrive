@@ -136,7 +136,7 @@ class DBuilder:
             with self.conn:
                 self.c.execute(" CREATE TABLE %s (id integer PRIMARY KEY NOT NULL)" %(db))
                 for key in keys:
-                    self.c.execute('ALTER TABLE %s ADD COLUMN "%s"' %(db, key))
+                    self.c.execute("ALTER TABLE %s ADD COLUMN '%s'" %(db, key))
 
                 self.c.execute('SELECT * FROM %s' %(db))
                 titles = list(map(lambda x:x[0], self.c.description[1:]))
@@ -160,16 +160,16 @@ class DBuilder:
                 values = '('
                 for i in range(len(titles)):
                     if i == 0:
-                        values = '(?'
+                        values = "(?"
                     else:
-                        values += ', ?'
+                        values += ", ?"
 
                 cols = '('
                 for i in range(len(titles)):
                     if i == 0:
-                        cols = '("%s"'
+                        cols = "('%s'"
                     else:
-                        cols += ', "%s"'
+                        cols += ", '%s'"
 
                 query = f'INSERT INTO %s {cols}) VALUES {values})'
                 titles.insert(0, db)
