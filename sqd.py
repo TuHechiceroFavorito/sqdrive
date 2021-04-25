@@ -22,6 +22,7 @@ class DBuilder:
         self.conn = sqlite3.connect(dbname, check_same_thread=False)
         self.c = self.conn.cursor()
         self.urls = urls
+        self.reset()
 
     def get_sheets(self, db, mode=False, sheet=None, data=True, tab=None, formulas=False):
         if formulas:
