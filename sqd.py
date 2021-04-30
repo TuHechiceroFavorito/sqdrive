@@ -15,14 +15,15 @@ logger.addHandler(logging.NullHandler())
 scope = ["https://spreadsheets.google.com/feeds",'https://www.googleapis.com/auth/spreadsheets',"https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
 
 class DBuilder:
-    def __init__(self, urls, creds, dbname=':memory:'):
+    def __init__(self, urls, creds, dbname=':memory:', reset=True):
         creds_set = ServiceAccountCredentials.from_json_keyfile_name(creds, scope)
         self.client = gspread.authorize(creds_set)
         self.dbname = dbname
         self.conn = sqlite3.connect(dbname, check_same_thread=False)
         self.c = self.conn.cursor()
         self.urls = urls
-        self.reset()
+        if reset:
+            self.reset()
 
     def get_sheets(self, db, mode=False, sheet=None, data=True, tab=None, formulas=False):
         if formulas:
