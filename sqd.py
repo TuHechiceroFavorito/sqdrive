@@ -15,15 +15,16 @@ logger.addHandler(logging.NullHandler())
 scope = ["https://spreadsheets.google.com/feeds",'https://www.googleapis.com/auth/spreadsheets',"https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
 
 class DBuilder:
-    def __init__(self, urls, creds, dbname=':memory:', reset=True):
+    def __init__(self, urls, creds, dbname=':memory:', reset=True, formul=None):
         creds_set = ServiceAccountCredentials.from_json_keyfile_name(creds, scope)
         self.client = gspread.authorize(creds_set)
         self.dbname = dbname
         self.conn = sqlite3.connect(dbname, check_same_thread=False)
         self.c = self.conn.cursor()
         self.urls = urls
+        self.formul = formul
         if reset:
-            self.reset()
+            self.reset(formul=self.formul)
 
     def get_sheets(self, db, mode=False, sheet=None, data=True, tab=None, formulas=False):
         if formulas:
@@ -203,7 +204,8 @@ class DBuilder:
         with self.conn:
             self.c.execute("UPDATE '%s' SET '%s' = ? WHERE '%s' = ?" %(db, col, t_col), (value, target))
 
-    def init(self, urls=None, num=False):
+    def init(self, urls=None, num=False, formul=None):
+        i = 0
         if urls == None:
             urls = self.urls
         for url in urls:
@@ -211,9 +213,16 @@ class DBuilder:
                 self.create_table(url, True)
             else:
                 self.create_table(url)
-            self.update_table(url)
+            if formul != None:
+                formulas = formul[i]
+            else:
+                formulas = False
 
-    def reset(self, urls=None, num=False):
+            self.update_table(url, formulas=formulas)
+
+            i += 1
+
+    def reset(self, urls=None, num=False, formul=None):
         if urls == None:
             urls = self.urls
         for url in urls:
@@ -221,7 +230,7 @@ class DBuilder:
                 self.delete_table(url)
             except:
                 logger.warning(f"Table {url} didn't exist")
-        self.init(urls, num)
+        self.init(urls, num, formul)
 
     def transpose(self, a):
         mapping = map(list, zip(*a))
